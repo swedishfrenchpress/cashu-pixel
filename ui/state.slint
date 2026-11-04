@@ -1,0 +1,122 @@
+// State shared between the faucet loop (src/main.rs) and the screens.
+
+export enum Phase {
+    // Opening the wallet
+    starting,
+    // A token QR is on screen, waiting for someone to scan it
+    dripping,
+    // The token on screen was just claimed; the next one follows shortly
+    claimed,
+    // Waiting out the pause between claims, with a countdown to the next token
+    cooling,
+    // Balance below one drip: the screen shows a Lightning invoice to refill
+    empty,
+    // The wallet could not open; `message` says why
+    error,
+}
+
+export enum Theme {
+    // The faucet's own look, inspired by umbrelOS
+    dusk,
+    // bitcoin++ Seoul, privacy edition: styled after btcpp.dev/seoul
+    seoul,
+}
+
+// A mint the faucet can move to, in Settings › Mint
+export struct MintOption {
+    host: string,
+    url: string,
+    // Sats the faucet's wallet holds there
+    sats: int,
+    // The mint the faucet uses now
+    current: bool,
+}
+
+// Where a mint switch has got to
+export enum MintStep {
+    // Choosing a mint
+    list,
+    // A mint is picked: switch, and move the sats?
+    confirm,
+    // Checking the mint and moving the sats
+    moving,
+    // Switched; `mint-note` says how it went
+    done,
+    // Didn't switch; `mint-note` says why
+    failed,
+}
+
+export global Faucet {
+    in property <Phase> phase: Phase.starting;
+
+    // The look, picked in Settings
+    in-out property <Theme> theme: Theme.dusk;
+
+    // Painted at startup by src/backdrop: each theme's background, a blurred copy for the
+    // start and error screens, and (Dusk) the settings panel's frosted plate
+    in property <image> dusk-backdrop;
+    in property <image> dusk-soft;
+    in property <image> dusk-sheet;
+    in property <image> seoul-backdrop;
+    in property <image> seoul-soft;
+
+    // The token on screen, as a QR (one frame of it when animated)
+    in property <image> token-qr;
+    in property <bool> token-animated;
+    // Sats in the token on screen
+    in property <int> token-amount;
+
+    // Sats per token for the next drip
+    in property <int> drip: 21;
+    // Show longer tokens as animated QR codes (the owner's setting)
+    in property <bool> animated-qr: true;
+    // Seconds between a claim and the next token (the owner's setting)
+    in property <int> cooldown: 60;
+    // The countdown on screen: its length, and the seconds left (ticked down by the UI)
+    in property <int> cooldown-total: 60;
+    in-out property <int> cooldown-left;
+    // Sats left in the wallet (not counting the token on screen)
+    in property <int> balance;
+    // Tokens given out and sats claimed, all time
+    in property <int> drips-given;
+    in property <int> sats-given;
+    in property <string> mint-host;
+
+    // Settings › Mint: the mints to move to, the sats a switch would move, the step under
+    // way, the mint picked, and what happened. After a failed move the owner may switch
+    // anyway, leaving the sats at the old mint (`mint-can-force`).
+    in property <[MintOption]> mints;
+    in property <int> mint-movable;
+    in-out property <bool> mint-view;
+    in-out property <MintStep> mint-step;
+    in-out property <MintOption> mint-pick;
+    in property <string> mint-note;
+    in property <bool> mint-can-force;
+    // A short line about the mint or wallet (offline, errors, reclaim results); empty when all is well
+    in property <string> message;
+
+    // Refill: a Lightning invoice anyone can pay to top the faucet up
+    in property <image> refill-qr;
+    // The same invoice at the owner panel's size (QR codes are drawn 1:1, never scaled)
+    in property <image> refill-qr-small;
+    in property <int> refill-amount;
+    in property <bool> refill-ready;
+    // Sats that arrived from the last paid refill; 0 while waiting
+    in property <int> refill-received;
+
+    // Settings panel (the gear, top right), and whether it's showing a refill invoice
+    in-out property <bool> owner-open;
+    in-out property <bool> refill-view;
+    callback set-drip(int);
+    callback set-cooldown(int);
+    callback set-animated(bool);
+    callback set-theme(Theme);
+    callback request-refill(int);
+    callback close-refill();
+    callback reclaim();
+    // Fill `mints`
+    callback open-mints();
+    // Move to the mint at this URL; true leaves the sats at the old mint
+    callback switch-mint(string, bool);
+    callback exit-app();
+}
