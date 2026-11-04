@@ -107,5 +107,6 @@ The images at the top are a selection from that run, in `docs/screenshots/`. The
 
 ## Licences
 
+- The code is under the MIT License; see [`LICENSE`](LICENSE). It doesn't cover the fonts or the bitcoin++ artwork below.
 - Inter, IBM Plex (including Plex Sans KR) and Source Serif 4 are under the SIL Open Font License, and Ubuntu is under the Ubuntu Font Licence. See `ui/fonts/licenses/`.
 - The bitcoin++ name, wordmark, sparkles and persimmon-tree artwork belong to bitcoin++. Get the organisers' OK before showing that theme at their event.

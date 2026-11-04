@@ -2,6 +2,7 @@
 name = "pixel-faucet"
 version = "0.1.0"
 edition = "2021"
+license = "MIT"
 
 [dependencies]
 cdk = { version = "0.18", default-features = false, features = ["wallet"] }
